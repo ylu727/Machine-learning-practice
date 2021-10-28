@@ -1,0 +1,38 @@
+# PCA is an unsupervised machine learning method
+from sklearn import datasets
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np 
+import pandas as pd 
+
+# 1.load the data
+data = datasets.load_breast_cancer()
+X = data.data[:,:]
+y = data.target
+
+print(X.shape, y.shape)
+print(data['DESCR'])
+
+# 2. Standardized the data
+standardized = StandardScaler()
+standardized.fit(X)
+data2 = standardized.transform(X)
+
+# 3. here I use three principal components to reduce the dimensions of the data
+model1 = PCA(n_components=3)
+model1.fit(scaled_data)
+x_model1 = model1.transform(data2)
+data2.shape
+x_model1.shape
+# each data array has three principal components
+x_model1[:1]
+# 4.Visualize the result using three principal components
+fig = plt.figure(figsize=(20, 10))
+ax = fig.add_subplot(111, projection='3d')
+ax.scatter(x_model1[:,0], x_model1[:,1], x_model1[:,2],c=y, s=60)
+ax.set_xlabel('First Principal Component')
+ax.set_ylabel('Second Principal Component')
+ax.set_zlabel('Third Principal Component')
