@@ -1,0 +1,27 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn import datasets  
+from sklearn.ensemble import ExtraTreesClassifier
+
+# 2.load data
+data1 = datasets.load_iris()
+print("Features: ", data1.feature_names)
+X = data1.data[:, :4] 
+y = data1.target
+
+# 2. Build the model
+extratree = ExtraTreesClassifier(n_estimators = 100, criterion ='entropy', max_features = 2)
+  
+# 3. Train the model
+extratree.fit(X, y)
+importance = extratree.feature_importances_   # Computing the importance of feature
+importance_normalized = np.std([tree.feature_importances_ for tree in extra_tree_forest.estimators_],axis = 0)
+
+# 4. Compare the importance of each feature
+fig = plt.figure(figsize=(10, 4))
+plt.bar(data1.feature_names, importance_normalized)
+plt.xlabel('Feature')
+plt.ylabel('Feature Importance')
+plt.title('Comparison of Feature Importance')
+plt.show()
