@@ -1,0 +1,58 @@
+from sklearn.model_selection import train_test_split
+from sklearn.model_selection import RepeatedStratifiedKFold
+from sklearn.model_selection import cross_val_score
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis 
+from sklearn import datasets
+import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
+
+# 1. load data
+iris = datasets.load_iris()
+
+# 2. transform dataset
+data3 = pd.DataFrame(data = np.c_[iris['data'], iris['target']],
+                 columns = iris['feature_names'] + ['target'])
+data3['species'] = pd.Categorical.from_codes(iris.target, iris.target_names)
+data3.columns = ['s_length', 's_width', 'p_length', 'p_width', 'target', 'species']
+
+print(data3.shape)
+
+# 3. define X as predictor and y as response
+X = data3[['s_length', 's_width', 'p_length', 'p_width']]
+y = data3['species']
+
+# 4. Apply the LDA model
+model2 = LinearDiscriminantAnalysis()
+model2.fit(X, y)
+
+# 5. Evaluate model
+f = RepeatedStratifiedKFold(n_splits=10, n_repeats=3, random_state=1)
+scores = cross_val_score(model, X, y, scoring='accuracy', cv=f, n_jobs=-1)
+print('Accuracy', np.mean(scores)) 
+
+# 6. Input new data and make a prediction
+inputdata = [4.3, 2.7, 2, .9]
+
+#predict which class the new observation belongs to
+model2.predict([inputdata])
+
+# 8. Visualize the result
+X = iris.data
+y = iris.target
+model2 = LinearDiscriminantAnalysis()
+data_plot = model2.fit(X, y).transform(X)
+target_names = iris.target_names
+
+plt.figure()
+colors = ['pink', 'green', 'yellow']
+lw = 2
+for color, i, target_name in zip(colors, [0, 1, 2], target_names):
+    plt.scatter(data_plot[y == i, 0], data_plot[y == i, 1], alpha=.8, color=color,
+                label=target_name)
+
+#add legend to plot
+plt.legend(loc='best', shadow=False, scatterpoints=1)
+
+#display LDA plot
+plt.show()
