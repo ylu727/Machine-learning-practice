@@ -1,0 +1,108 @@
+import numpy as np
+import pandas as pd
+import statsmodels.api as sm
+from sklearn.datasets import load_boston
+from mlxtend.feature_selection import SequentialFeatureSelector as SFS
+from sklearn.linear_model import LinearRegression
+
+# load data
+data1= load_boston()
+print(data1.data.shape)         
+print(data1.feature_names)      
+print(data1.DESCR) 
+
+data1_table = pd.DataFrame(boston.data, columns = data1.feature_names)
+data1_table = pd.DataFrame(boston.data, columns = boston.feature_names)
+data1_table['Price'] = data1.target
+X = data1_table.drop("Price", 1)       # feature matrix
+y = data1_table['Price']               # target feature
+data1_table['Price'] = data1.target
+data1_table.head()
+
+# 1. forward selection
+def forward_selection(data, target, significance_level = 0.05): # search for feature with minimum P value
+    initial_features = data.columns.tolist()
+    best_features = []
+    while (len(initial_features)>0):
+        remaining_features = list(set(initial_features)-set(best_features))
+        new_pval = pd.Series(index = remaining_features)
+        for new_column in remaining_features:
+            model = sm.OLS(target, sm.add_constant(data[best_features+[new_column]])).fit()
+            new_pval[new_column] = model.pvalues[new_column]
+        min_p_value = new_pval.min()
+        if(min_p_value < significance_level):
+            best_features.append(new_pval.idxmin())
+        else:
+            break
+    return best_features
+  
+forward_selection(X,y)
+
+# package of feature selection
+sfs = SFS(LinearRegression(), k_features=11, forward=True, floating=False, scoring = 'r2', cv = 0)
+
+sfs.fit(X, y)
+sfs.k_feature_names_ 
+
+# 2. backward elimination
+def backward_elimination(data, target,significance_level = 0.05):
+    features = data.columns.tolist()
+    while(len(features)>0):
+        features_with_constant = sm.add_constant(data[features])
+        p_values = sm.OLS(target, features_with_constant).fit().pvalues[1:]
+        max_p_value = p_values.max()
+        if(max_p_value >= significance_level):
+            excluded_feature = p_values.idxmax()
+            features.remove(excluded_feature)
+        else:
+            break
+    return features
+backward_elimination(X,y)
+
+# Package of feature selector
+sbs = SFS(LinearRegression(), k_features=11, forward=False, floating=False, cv=0)
+sbs.fit(X, y)
+sbs.k_feature_names_
+
+sfs = SFS(LinearRegression(), k_features=(3,11), forward=True, floating=False, cv=0)
+sfs.fit(X, y)
+
+from mlxtend.plotting import plot_sequential_feature_selection as plot_sfs
+import matplotlib.pyplot as plt
+fig1 = plot_sfs(sfs1.get_metric_dict(), kind='std_dev')
+plt.title('Sequential Forward Selection (w. StdErr)')
+plt.grid()
+plt.show()
+
+# 3. Bi-directional elimination
+def bi_directional(data, target,SL_in=0.05,SL_out = 0.05):
+    initial_features = data.columns.tolist()
+    best_features = []
+    while (len(initial_features)>0):
+        remaining_features = list(set(initial_features)-set(best_features))
+        new_pval = pd.Series(index=remaining_features)
+        for new_column in remaining_features:
+            model = sm.OLS(target, sm.add_constant(data[best_features+[new_column]])).fit()
+            new_pval[new_column] = model.pvalues[new_column]
+        min_p_value = new_pval.min()
+        if(min_p_value<SL_in):
+            best_features.append(new_pval.idxmin())
+            while(len(best_features)>0):
+                best_features_with_constant = sm.add_constant(data[best_features])
+                p_values = sm.OLS(target, best_features_with_constant).fit().pvalues[1:]
+                max_p_value = p_values.max()
+                if(max_p_value >= SL_out):
+                    excluded_feature = p_values.idxmax()
+                    best_features.remove(excluded_feature)
+                else:
+                    break 
+        else:
+            break
+    return best_features
+
+bi_directional(X,y)
+
+# Package of bi_dimensional
+sfs = SFS(LinearRegression(), k_features = 11, forward=True, floating=True, cv=0)
+sfs.fit(X, y)
+sfs.k_feature_names_
