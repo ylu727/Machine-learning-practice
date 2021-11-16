@@ -1,0 +1,29 @@
+from sklearn.datasets import make_regression
+from sklearn.ensemble import RandomForestRegressor
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_boston
+
+# 1. load the dataset
+data2 = load_boston()
+X = data2.data[:] 
+y = data2.target 
+print(data2.data.shape)         
+print(data2.feature_names)      
+print(data2.DESCR) 
+
+# 2. define a random regression problem
+X, y = make_regression(n_samples = 100, n_features = 13, n_informative = 5, random_state = 1)
+model = RandomForestRegressor()
+model.fit(X, y)
+# get importance
+importance = model.feature_importances_
+
+# 3. Output the importance
+print(importance)
+
+fig = plt.figure(figsize=(10, 4))
+plt.bar(data2.feature_names, importance, color = 'pink')
+plt.xlabel('Feature')
+plt.ylabel('Feature Importance')
+plt.title('Comparison of Feature Importance')
+plt.show()Ra
