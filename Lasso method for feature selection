@@ -1,0 +1,32 @@
+from sklearn.datasets import load_boston
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import statsmodels.api as sm
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.feature_selection import RFE
+from sklearn.linear_model import RidgeCV, LassoCV, Ridge, Lasso
+
+# 1. Loading the dataset
+x = load_boston()
+df = pd.DataFrame(x.data, columns = x.feature_names)
+df["MEDV"] = x.target
+X = df.drop("MEDV",1)   #Feature Matrix
+y = df["MEDV"]          #Target Variable
+df.head()
+
+# 2. Use LASSO to find out optimal features
+fs1 = LassoCV()
+fs1.fit(X, y)
+print("Best alpha using built-in LassoCV: %f" % fs1.alpha_)
+print("Best score using built-in LassoCV: %f" % fs1.score(X,y))
+coef = pd.Series(fs1.coef_, index = X.columns)
+
+print("Lasso picked " + str(sum(coef != 0)) + " variables and eliminated the other " +  str(sum(coef == 0)) + " variables")
+
+# 3. Output the importance of features
+plot_coef = coef.sort_values()
+matplotlib.rcParams['figure.figsize'] = (8.0, 10.0)
+plot_coef.plot(kind = "barh", color = 'green')
+plt.title("Feature selection using Lasso method")
