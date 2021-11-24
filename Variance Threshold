@@ -1,0 +1,37 @@
+import numpy as np
+from sklearn import datasets
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+sns.set(style="whitegrid")
+import warnings
+warnings.filterwarnings('ignore')
+from sklearn.datasets import load_iris
+from sklearn.feature_selection import f_classif
+from sklearn.feature_selection import VarianceThreshold
+
+# 1. Fit variance thresholding model
+feature_selector = VarianceThreshold()
+feature_selector.fit_transform(X_data)
+
+# 2. Output variance of each feature
+for feature in zip(fn, feature_selector.variances_):
+    print(feature)
+
+# 3. Visualize the variance of each feature
+plt.figure(figsize = (10,4))
+plt.bar(x = fn, height = feature_selector.variances_, color='blue')
+plt.xticks(rotation='vertical')
+plt.ylabel('Variance')
+plt.title('Variance of Each Feature')
+plt.show()
+
+# Create VarianceThreshold object to perform variance thresholding
+feature_selector1 = VarianceThreshold(threshold=0.2)
+
+# Transform the dataset according to variance thresholding
+X_data1 = feature_selector1.fit_transform(X_data)
+
+# Print the results
+print('Number of features before variance thresholding: {}'.format(X_data.shape[1]))
+print('Number of features after variance thresholding: {}'.format(X_data1.shape[1]))
