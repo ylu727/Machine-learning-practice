@@ -1,0 +1,16 @@
+from sklearn.feature_selection import mutual_info_classif
+
+# 1. Calculate mutual information of Each Feature
+MI = mutual_info_classif(X_data, y_data, random_state=0)
+
+# Print the name and mutual information score of each feature
+for feature in zip(fn, MI_score):
+    print(feature)
+
+# 2. Visualize the mutual information scores
+plt.figure(figsize = (10,4))
+plt.bar(x = fn, height = MI, color='pink')
+plt.xticks(rotation='vertical')
+plt.ylabel('Mutual Information Score')
+plt.title('Mutual Information Score of Each Feature')
+plt.show()
