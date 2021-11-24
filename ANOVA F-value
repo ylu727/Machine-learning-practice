@@ -1,0 +1,33 @@
+import numpy as np
+from sklearn import datasets
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+sns.set(style="whitegrid")
+import warnings
+warnings.filterwarnings('ignore')
+from sklearn.datasets import load_iris
+from sklearn.feature_selection import f_classif
+
+# 1. Load Iris dataset
+data = datasets.load_iris()
+fn = load_iris().feature_names
+X_data = pd.DataFrame(load_iris().data, columns = fn)
+y_data = load_iris().target
+print(data.DESCR) 
+X_data.head()
+
+# 2. Calculate F-value of each feature
+f_value = f_classif(X_data, y_data)
+
+# 3. Output F-value of each feature
+for feature in zip(fn, f_value[0]):
+    print(feature)
+
+# Visualize the F-values
+plt.figure(figsize = (10,4))
+plt.bar(x = fn, height = f_value[0], color='green')
+plt.xticks(rotation='vertical')
+plt.ylabel('F-value')
+plt.title('F-value of Each Feature')
+plt.show()
