@@ -1,0 +1,33 @@
+from sklearn.feature_selection import RFE
+from sklearn.ensemble import AdaBoostRegressor
+from sklearn.datasets import load_boston
+from numpy import array
+
+# 1. Load dataset
+data1 = load_boston()
+x = data1.data
+y = data1.target
+
+print(data1.data.shape)         
+print(data1.feature_names)      
+print(data1.DESCR) 
+
+# 2. Fit the RFE model 
+estimator = AdaBoostRegressor(random_state = 0, n_estimators = 200)
+features_selector = RFE(estimator, n_features_to_select = 5, step = 1)
+features_selector1 = features_selector.fit(x, y)
+
+# 3. Output the results of fitting the RFE model
+filter = features_selector1.support_
+ranking = features_selector1.ranking_
+
+print("Features: ", filter)
+print("Ranking: ", ranking) 
+
+# 4. Output the selected features
+features = array(data1.feature_names)
+print("All features:")
+print(features)
+
+print("Selected features:")
+print(features[filter])
