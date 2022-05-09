@@ -1,0 +1,124 @@
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import RBF
+import numpy as np
+from scipy.stats import norm
+import csv
+import random
+X=[]
+Y_1=[]
+Y_2=[]
+
+# input the dataset
+with open('Dataset 1_Pareto.csv', newline='') as csvfile:
+    data = list(csv.reader(csvfile))
+    data=data[1:]
+    for i in data:
+        float_X = [float(item) for item in i[1:-4]]
+        float_Y_1 = [float(item) for item in i[-2:-1]]
+        float_Y_2 = [float(item) for item in i[-1:]]
+        X.append(float_X)
+        Y_1.append(float_Y_1)
+        Y_2.append(float_Y_2)
+#         Y.append(float_Y)
+train_size=round(len(X)*0.7)
+index=[]
+X_train=[]
+Y_train_1=[]
+Y_train_2=[]
+X_test=[]
+Y_test_1=[]
+Y_test_2=[]
+for i in range(len(X)):
+    index.append(i)
+rd_index=random.sample(index, k=train_size)
+for i in range(len(X)):
+    if i in rd_index:
+        X_train.append(X[i])
+        Y_train_1.append(Y_1[i])
+        Y_train_2.append(Y_2[i])
+    else:
+        X_test.append(X[i])
+        Y_test_1.append(Y_1[i])
+        Y_test_2.append(Y_2[i])
+
+# Define search area
+X_search = X_test
+
+
+
+# X_train 
+# Y_train
+# X_search
+def DESIGN(X_train, Y_train_1,Y_train_2, X_search):
+    kernel = 1 * RBF(length_scale=1.0, length_scale_bounds=(1e-2, 1e2))
+    # use gaussian process or SVR
+    gaussian_process_1 = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=9)
+    gaussian_process_1.fit(X_train, Y_train_1)
+    gaussian_process_2 = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=9)
+    gaussian_process_2.fit(X_train, Y_train_2)
+    y_1=np.array([])
+    y_2=np.array([])
+    # min of sub PF
+    y_1_min_previous=0
+    y_2_min_previous=0
+    X_selected=np.array([])
+    
+    y_1_predicted=0
+    y_2_predicted=0
+    EI_1_total=np.array([])
+    EI_2_total=np.array([])
+    for x in X_search:
+        #calculate predicted y value
+        y_1_,y_1_std=gaussian_process_1.predict([x], return_std=True)
+        y_2_,y_2_std=gaussian_process_2.predict([x], return_std=True)
+        print(y_1_,y_2_)
+        y_1_= np.array(y_1_)
+        y_2_= np.array(y_2_)
+        
+        
+        #put predicted y values into total predicted y values
+        if (y_1.size==0):
+            y_1=y_1_
+            y_2=y_2_
+        else:      
+            y_1=np.concatenate((y_1, y_1_),axis=0)
+            y_2=np.concatenate((y_2, y_2_),axis=0)
+            
+        # calculate minimum y values 
+        y_1_min=np.min(y_1)
+        y_2_min=np.min(y_2)
+        
+        # improvement
+        I_1=y_1_min_previous-y_1_
+        I_2=y_2_min_previous-y_2_
+        
+        # PI method: https://machinelearningmastery.com/what-is-bayesian-optimization/
+        PI_y_1=norm.cdf((y_1_min - y_1_) / (y_1_std+1E-9))
+        PI_y_2=norm.cdf((y_2_min - y_2_) / (y_2_std+1E-9))
+        
+        # EI：
+        EI_y_1=I_1*PI_y_1
+        EI_y_2=I_2*PI_y_2
+        
+        # update minimum point in sub PF
+        y_1_min_previous=y_1_min
+        y_2_min_previous=y_2_min
+        
+        if EI_1_total.size==0 or EI_2_total.size==0:
+            if (EI_1_total.size==0):
+                EI_1_total=np.array(EI_y_1[0])
+            if (EI_2_total.size==0):
+                EI_2_total=np.array(EI_y_2[0])
+        else:
+            if (EI_y_1>np.max(EI_1_total)) and (EI_y_2>np.max(EI_2_total)) :
+                X_selected=x
+                y_1_predicted=y_1_
+                y_2_predicted=y_2_
+                
+        EI_1_total=np.append(EI_1_total,EI_y_1[0][0])
+        EI_2_total=np.append(EI_2_total,EI_y_2[0][0])
+    return X_selected,y_1_predicted, y_2_predicted 
+
+# output the optimal features and predicted values
+X_selected,y_1_predicted, y_2_predicted = DESIGN(X_train, Y_train_1,Y_train_2, X_search)
+print(X_selected,y_1_predicted, y_2_predicted)
